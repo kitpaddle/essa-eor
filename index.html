@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EOR Arrivals — ESSA</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="data/stand-apron-map.js"></script>
+  <script src="data/mock-chroma.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 24px;
+    }
+
+    #app {
+      width: 500px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .panel-header {
+      background: #e8eaf0;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #ccc;
+    }
+    .panel-title {
+      font-size: 13px;
+      letter-spacing: 2px;
+      color: #555;
+      font-weight: 600;
+    }
+    .header-right { display: flex; align-items: center; gap: 8px; }
+    .rwy-label { font-size: 11px; color: #777; }
+    .rwy-btn {
+      background: #fff;
+      border: 1px solid #999;
+      padding: 3px 12px;
+      border-radius: 3px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #111;
+      min-width: 48px;
+    }
+    .rwy-btn:hover { background: #f0f0f0; }
+    .apron-toggle-btn {
+      font-size: 11px;
+      color: #777;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 2px 4px;
+    }
+    .apron-toggle-btn:hover { color: #333; }
+
+    /* ── Apron settings panel ── */
+    .apron-panel {
+      background: #f0f2f8;
+      border-bottom: 1px solid #ccc;
+      padding: 10px 16px;
+    }
+    .apron-panel-title {
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: #888;
+      margin-bottom: 8px;
+    }
+    .apron-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 24px;
+    }
+    .apron-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 3px 0;
+    }
+    .apron-name { font-size: 11px; color: #444; }
+    .apron-toggles { display: flex; gap: 3px; }
+    .apron-btn {
+      font-size: 10px;
+      padding: 2px 7px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      cursor: pointer;
+      background: #fff;
+      color: #888;
+    }
+    .apron-btn.active-green { background: #4caf50; color: #fff; border-color: #4caf50; }
+    .apron-btn.active-red   { background: #f44336; color: #fff; border-color: #f44336; }
+
+    /* ── Column headers ── */
+    .col-headers {
+      display: grid;
+      grid-template-columns: 120px 80px 1fr 80px;
+      padding: 6px 16px;
+      font-size: 10px;
+      color: #888;
+      letter-spacing: 1px;
+      border-bottom: 2px solid #ccc;
+      background: #eceef3;
+    }
+    .col-center { text-align: center; }
+
+    /* ── Arrival rows ── */
+    .arrival-row {
+      display: grid;
+      grid-template-columns: 120px 80px 1fr 80px;
+      padding: 10px 16px;
+      border-bottom: 1px solid #eee;
+      font-size: 13px;
+      align-items: center;
+      font-family: 'Courier New', monospace;
+    }
+    .row-even { background: #fff; }
+    .row-odd  { background: #f9f9fc; }
+    .callsign  { font-weight: bold; color: #111; }
+    .elt-col   { color: #333; }
+    .stand-col { color: #333; }
+    .stand-empty { color: #bbb; }
+    .dot-cell { text-align: center; }
+
+    .dot {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+    }
+    .dot-grey   { background: #ccc; }
+    .dot-green  { background: #4caf50; }
+    .dot-yellow { background: #ffc107; }
+    .dot-red    { background: #f44336; }
+
+    .empty-state {
+      padding: 32px 16px;
+      text-align: center;
+      color: #aaa;
+      font-size: 12px;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* ── Demo controls ── */
+    .demo-controls {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      background: #fffbe6;
+      border: 1px dashed #e0c040;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 11px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.14);
+      z-index: 1000;
+      min-width: 120px;
+    }
+    .demo-title {
+      color: #b8860b;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      font-weight: bold;
+      font-size: 10px;
+    }
+    .demo-controls button {
+      display: block;
+      width: 100%;
+      font-size: 10px;
+      padding: 4px 10px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      background: #fff;
+      cursor: pointer;
+      text-align: left;
+      margin-bottom: 4px;
+      font-family: monospace;
+    }
+    .demo-controls button:last-child { margin-bottom: 0; }
+    .demo-controls button:hover { background: #f5f5f5; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="panel-header">
+      <span class="panel-title">EOR ARRIVALS</span>
+    </div>
+    <div style="padding:16px;color:#aaa;font-size:12px;">Loading...</div>
+  </div>
+
+  <script>
+    console.log('STAND_APRON_MAP loaded:', Object.keys(STAND_APRON_MAP).length, 'stands');
+    console.log('CHROMA_FLIGHTS loaded:', CHROMA_FLIGHTS.length, 'flights');
+  </script>
+</body>
+</html>
