@@ -467,7 +467,10 @@
 
     function buildDemoAprons() {
       const aprons = buildDefaultAprons();
-      aprons['Ramp K']['01L'] = 'red'; // demo: show red dot on load
+      ['Ramp E', 'Ramp J', 'Ramp K', 'Ramp M'].forEach(name => {
+        aprons[name]['01L'] = 'red';
+        aprons[name]['19R'] = 'red';
+      });
       return aprons;
     }
 
@@ -478,7 +481,7 @@
         return {
           arrivals: [],
           config: {
-            runway: '01R',
+            runway: '01L',
             aprons: buildDemoAprons(),
           },
           apronPanelOpen: false,
@@ -521,7 +524,7 @@
           if (!arrival.expectedStand) return 'grey';
           const apron = STAND_APRON_MAP[arrival.expectedStand];
           if (!apron) return 'red';
-          const eorRunway = this.config.runway === '01R' ? '01L' : '19R';
+          const eorRunway = this.config.runway;
           if (this.config.aprons[apron][eorRunway] === 'red') return 'red';
           const threshold = new Date(arrival.elt.getTime() - FREE_TIME_THRESHOLD_MIN * 60000);
           if (!arrival.standFreeTime || arrival.standFreeTime <= threshold) return 'green';
@@ -561,7 +564,7 @@
         },
 
         toggleRunway() {
-          this.config.runway = this.config.runway === '01R' ? '19L' : '01R';
+          this.config.runway = this.config.runway === '01L' ? '19R' : '01L';
         },
 
         toggleApron(apron, runway) {
