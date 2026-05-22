@@ -21,7 +21,7 @@
     }
 
     #app {
-      width: 500px;
+      width: 440px;
       background: #fff;
       border-radius: 8px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.12);
@@ -31,10 +31,10 @@
     /* ── Header ── */
     .panel-header {
       background: #e8eaf0;
-      padding: 10px 16px 10px 8px;
-      display: flex;
+      padding: 10px 10px 10px 10px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
       align-items: center;
-      justify-content: space-between;
       border-bottom: 1px solid #ccc;
     }
     .panel-title {
@@ -43,7 +43,8 @@
       color: #555;
       font-weight: 600;
     }
-    .header-right { display: flex; align-items: center; gap: 8px; }
+    .header-center { display: flex; align-items: center; gap: 6px; justify-content: center; }
+    .header-right { display: flex; align-items: center; justify-content: flex-end; }
     .rwy-label { font-size: 11px; color: #777; }
     .rwy-btn {
       background: #fff;
@@ -59,25 +60,26 @@
     .rwy-btn:hover { background: #f0f0f0; }
     .apron-toggle-btn {
       font-size: 11px;
-      color: #777;
-      background: none;
-      border: none;
+      color: #555;
+      background: #fff;
+      border: 1px solid #aaa;
+      border-radius: 3px;
       cursor: pointer;
-      padding: 2px 4px;
+      padding: 3px 8px;
     }
-    .apron-toggle-btn:hover { color: #333; }
+    .apron-toggle-btn:hover { background: #e8e8e8; }
 
     /* ── Apron settings panel ── */
     .apron-panel {
       background: #f0f2f8;
       border-bottom: 1px solid #ccc;
-      padding: 10px 16px 10px 8px;
+      padding: 10px 10px 10px 10px;
     }
     .apron-panel-top {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
     .apron-panel-title {
       font-size: 10px;
@@ -94,13 +96,20 @@
       cursor: pointer;
     }
     .reset-btn:hover { background: #f0f0f0; }
+    .apron-two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 10px;
+    }
     .apron-row {
       display: grid;
-      grid-template-columns: 1fr 44px 44px;
+      grid-template-columns: 1fr 32px 32px;
       align-items: center;
-      padding: 2px 0;
+      padding: 3px 2px;
+      border-radius: 3px;
     }
-    .apron-row.apron-col-header { margin-bottom: 2px; }
+    .apron-row-alt { background: rgba(0,0,0,0.05); }
+    .apron-col-header { margin-bottom: 2px; }
     .rwy-col-label {
       text-align: center;
       font-size: 10px;
@@ -110,8 +119,8 @@
     }
     .apron-name { font-size: 11px; color: #444; }
     .apron-dot-btn {
-      width: 22px;
-      height: 22px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       border: 2px solid transparent;
       cursor: pointer;
@@ -127,28 +136,70 @@
     .col-headers {
       display: grid;
       grid-template-columns: 44px 120px 80px 1fr 80px;
-      padding: 6px 16px 6px 8px;
+      padding: 6px 16px 6px 0;
       font-size: 10px;
       color: #888;
       letter-spacing: 1px;
       border-bottom: 2px solid #ccc;
       background: #eceef3;
+      position: relative;
     }
     .col-center { text-align: center; }
+    .col-filterable {
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+    }
+    .col-filterable:hover { color: #333; }
+    .col-filterable.filter-open { color: #333; }
+
+    /* ── Filter dropdowns ── */
+    .filter-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 200;
+      min-width: 150px;
+      padding: 4px 0;
+      font-size: 11px;
+      letter-spacing: 0;
+      color: #333;
+    }
+    .filter-dropdown-left  { left: 0; }
+    .filter-dropdown-right { right: 0; }
+    .filter-option {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+    .filter-option:hover { background: #f5f5f5; }
+    .fcheck { width: 12px; font-size: 11px; color: transparent; flex-shrink: 0; }
+    .fcheck.on { color: #333; }
+    .dot-small { width: 12px; height: 12px; display: inline-block; border-radius: 50%; flex-shrink: 0; }
 
     /* ── Arrival rows ── */
     .arrival-row {
       display: grid;
       grid-template-columns: 44px 120px 80px 1fr 80px;
-      padding: 10px 16px 10px 8px;
-      border-bottom: 1px solid #eee;
+      padding: 5px 16px 5px 0;
+      border-bottom: 1px solid #d0d0d0;
       font-size: 13px;
       align-items: center;
       font-family: 'Courier New', monospace;
     }
     .rnp-cell { text-align: center; line-height: 0; }
     .row-even { background: #fff; }
-    .row-odd  { background: #f9f9fc; }
+    .row-odd  { background: #fff; }
+    .row-no-rnp .rnp-cell,
+    .row-no-rnp .callsign,
+    .row-no-rnp .elt-col,
+    .row-no-rnp .stand-col,
+    .row-no-rnp .dot-cell { opacity: 0.4; }
     .callsign  { font-weight: bold; color: #111; }
     .elt-col   { color: #333; }
     .stand-col { color: #333; }
@@ -165,6 +216,11 @@
     .dot-green  { background: #4caf50; }
     .dot-yellow { background: #ffc107; }
     .dot-red    { background: #f44336; }
+    .dot-ring                { background: transparent !important; border-width: 3px; border-style: solid; }
+    .dot-ring.dot-grey       { border-color: #aaa; }
+    .dot-ring.dot-green      { border-color: #4caf50; }
+    .dot-ring.dot-yellow     { border-color: #ffc107; }
+    .dot-ring.dot-red        { border-color: #f44336; }
 
     .empty-state {
       padding: 32px 16px;
@@ -217,9 +273,11 @@
     <!-- Header -->
     <div class="panel-header">
       <span class="panel-title">EOR ARRIVALS</span>
-      <div class="header-right">
-        <span class="rwy-label">LDG RWY</span>
+      <div class="header-center">
+        <span class="rwy-label">ARR RWY</span>
         <button class="rwy-btn" @click="toggleRunway">{{ config.runway }}</button>
+      </div>
+      <div class="header-right">
         <button class="apron-toggle-btn" @click="apronPanelOpen = !apronPanelOpen">
           {{ apronPanelOpen ? '▲' : '▼' }} Apron settings
         </button>
@@ -232,25 +290,74 @@
         <span class="apron-panel-title">APRON STATUS — WS SETTINGS</span>
         <button class="reset-btn" @click="resetAprons">Reset to default</button>
       </div>
-      <div class="apron-row apron-col-header">
-        <span></span>
-        <span class="rwy-col-label">01L</span>
-        <span class="rwy-col-label">19R</span>
-      </div>
-      <div class="apron-row" v-for="(settings, apron) in config.aprons" :key="apron">
-        <span class="apron-name">{{ apron }}</span>
-        <button :class="['apron-dot-btn', 'dot-btn-' + settings['01L']]" @click="toggleApron(apron, '01L')"></button>
-        <button :class="['apron-dot-btn', 'dot-btn-' + settings['19R']]" @click="toggleApron(apron, '19R')"></button>
+      <div class="apron-two-col">
+        <div class="apron-half">
+          <div class="apron-row apron-col-header">
+            <span></span>
+            <span class="rwy-col-label">01L</span>
+            <span class="rwy-col-label">19R</span>
+          </div>
+          <div class="apron-row" :class="{ 'apron-row-alt': i % 2 === 1 }" v-for="(apron, i) in apronNamesLeft" :key="apron">
+            <span class="apron-name">{{ apron }}</span>
+            <button :class="['apron-dot-btn', 'dot-btn-' + config.aprons[apron]['01L']]" @click="toggleApron(apron, '01L')"></button>
+            <button :class="['apron-dot-btn', 'dot-btn-' + config.aprons[apron]['19R']]" @click="toggleApron(apron, '19R')"></button>
+          </div>
+        </div>
+        <div class="apron-half">
+          <div class="apron-row apron-col-header">
+            <span></span>
+            <span class="rwy-col-label">01L</span>
+            <span class="rwy-col-label">19R</span>
+          </div>
+          <div class="apron-row" :class="{ 'apron-row-alt': i % 2 === 1 }" v-for="(apron, i) in apronNamesRight" :key="apron">
+            <span class="apron-name">{{ apron }}</span>
+            <button :class="['apron-dot-btn', 'dot-btn-' + config.aprons[apron]['01L']]" @click="toggleApron(apron, '01L')"></button>
+            <button :class="['apron-dot-btn', 'dot-btn-' + config.aprons[apron]['19R']]" @click="toggleApron(apron, '19R')"></button>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Column headers -->
     <div class="col-headers">
-      <span class="col-center">RNP</span>
+      <span class="col-center col-filterable" :class="{ 'filter-open': activeFilter === 'rnp' }" @click.stop="openFilter('rnp')">
+        RNP
+        <div class="filter-dropdown filter-dropdown-left" v-if="activeFilter === 'rnp'" @click.stop>
+          <div class="filter-option" @click="toggleFilter('rnpYes')">
+            <span class="fcheck" :class="{ on: filters.rnpYes }">✓</span>
+            <svg width="12" height="12" viewBox="0 0 14 14"><polyline points="2,8 5,12 12,2" stroke="#333" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>RNP capable</span>
+          </div>
+          <div class="filter-option" @click="toggleFilter('rnpNo')">
+            <span class="fcheck" :class="{ on: filters.rnpNo }">✓</span>
+            <svg width="12" height="12" viewBox="0 0 14 14"><line x1="3" y1="3" x2="11" y2="11" stroke="#333" stroke-width="2.5" stroke-linecap="round"/><line x1="11" y1="3" x2="3" y2="11" stroke="#333" stroke-width="2.5" stroke-linecap="round"/></svg>
+            <span>Non-RNP</span>
+          </div>
+        </div>
+      </span>
       <span>CALLSIGN</span>
       <span>ELT</span>
       <span>EXP STAND</span>
-      <span class="col-center">STATUS</span>
+      <span class="col-center col-filterable" :class="{ 'filter-open': activeFilter === 'status' }" @click.stop="openFilter('status')">
+        STATUS
+        <div class="filter-dropdown filter-dropdown-right" v-if="activeFilter === 'status'" @click.stop>
+          <div class="filter-option" @click="toggleFilter('green')">
+            <span class="fcheck" :class="{ on: filters.green }">✓</span>
+            <span class="dot dot-small dot-green"></span>
+            <span>Green</span>
+          </div>
+          <div class="filter-option" @click="toggleFilter('yellow')">
+            <span class="fcheck" :class="{ on: filters.yellow }">✓</span>
+            <span class="dot dot-small dot-yellow"></span>
+            <span>Yellow</span>
+          </div>
+          <div class="filter-option" @click="toggleFilter('red')">
+            <span class="fcheck" :class="{ on: filters.red }">✓</span>
+            <span class="dot dot-small dot-red"></span>
+            <span>Red</span>
+          </div>
+        </div>
+      </span>
     </div>
 
     <!-- Arrivals list -->
@@ -262,15 +369,15 @@
         class="arrival-row"
         v-for="(arrival, i) in sortedArrivals"
         :key="arrival.callsign"
-        :class="i % 2 === 0 ? 'row-even' : 'row-odd'"
+        :class="[i % 2 === 0 ? 'row-even' : 'row-odd', !arrival.rnpCapable ? 'row-no-rnp' : '']"
       >
         <span class="rnp-cell">
           <svg v-if="arrival.rnpCapable" width="14" height="14" viewBox="0 0 14 14">
-            <polyline points="2,8 5,12 12,2" stroke="#4caf50" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="2,8 5,12 12,2" stroke="#333" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           <svg v-else width="14" height="14" viewBox="0 0 14 14">
-            <line x1="3" y1="3" x2="11" y2="11" stroke="#f44336" stroke-width="2.5" stroke-linecap="round"/>
-            <line x1="11" y1="3" x2="3" y2="11" stroke="#f44336" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="3" y1="3" x2="11" y2="11" stroke="#333" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="11" y1="3" x2="3" y2="11" stroke="#333" stroke-width="2.5" stroke-linecap="round"/>
           </svg>
         </span>
         <span class="callsign">{{ arrival.callsign }}</span>
@@ -279,7 +386,7 @@
           {{ arrival.expectedStand || '—' }}
         </span>
         <span class="dot-cell">
-          <span v-if="arrival.rnpCapable" class="dot" :class="`dot-${dotColor(arrival)}`"></span>
+          <span class="dot" :class="[`dot-${dotColor(arrival)}`, !arrival.rnpCapable ? 'dot-ring' : '']"></span>
         </span>
       </div>
     </template>
@@ -302,8 +409,7 @@
     const APRON_NAMES = [
       'Ramp AB', 'Ramp BC', 'Ramp CD', 'Ramp D',  'Ramp E',
       'Ramp F',  'Ramp FA', 'Ramp G',  'Ramp H',  'Ramp J',
-      'Ramp K',  'Ramp L',  'Ramp M',  'Ramp R',  'Ramp S',
-      'Engine Test Site',
+      'Ramp K',  'Ramp M',  'Ramp R',  'Ramp S',
     ];
 
     function buildDefaultAprons() {
@@ -330,6 +436,8 @@
           },
           apronPanelOpen: false,
           demoPanelVisible: false,
+          activeFilter: null,
+          filters: { rnpYes: true, rnpNo: true, green: true, yellow: true, red: true },
           pollTimer: null,
           addIndex: 0,
           LEAD_TIME_MIN,
@@ -338,8 +446,20 @@
 
       computed: {
         sortedArrivals() {
-          return [...this.arrivals].sort((a, b) => a.elt - b.elt);
+          return [...this.arrivals]
+            .filter(a => {
+              if (a.rnpCapable  && !this.filters.rnpYes) return false;
+              if (!a.rnpCapable && !this.filters.rnpNo)  return false;
+              const color = this.dotColor(a);
+              if (color === 'green'  && !this.filters.green)  return false;
+              if (color === 'yellow' && !this.filters.yellow) return false;
+              if (color === 'red'    && !this.filters.red)    return false;
+              return true;
+            })
+            .sort((a, b) => a.elt - b.elt);
         },
+        apronNamesLeft()  { return APRON_NAMES.slice(0, 7); },
+        apronNamesRight() { return APRON_NAMES.slice(7); },
       },
 
       methods: {
@@ -356,6 +476,16 @@
           const threshold = new Date(arrival.elt.getTime() - FREE_TIME_THRESHOLD_MIN * 60000);
           if (!arrival.standFreeTime || arrival.standFreeTime <= threshold) return 'green';
           return 'yellow';
+        },
+
+        openFilter(name) {
+          this.activeFilter = this.activeFilter === name ? null : name;
+        },
+        toggleFilter(key) {
+          this.filters[key] = !this.filters[key];
+        },
+        closeFilter() {
+          this.activeFilter = null;
         },
 
         toggleRunway() {
@@ -440,11 +570,13 @@
 
         this.pollTimer = setInterval(this.pollChroma, POLL_INTERVAL_SEC * 1000);
         window.addEventListener('keydown', this.handleKeydown);
+        document.addEventListener('click', this.closeFilter);
       },
 
       beforeUnmount() {
         clearInterval(this.pollTimer);
         window.removeEventListener('keydown', this.handleKeydown);
+        document.removeEventListener('click', this.closeFilter);
       },
     }).mount('#app');
   </script>

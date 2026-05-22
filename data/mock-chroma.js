@@ -12,7 +12,7 @@ const CHROMA_FLIGHTS = [
   // YELLOW: Ramp G green, free only 12 min before ELT
   { callsign: 'BAW456',  elt: _add(32), expectedStand: 'G143', standFreeTime: _add(20), _resolvedStand: null,   rnpCapable: true  },
   // Non-RNP: no dot shown
-  { callsign: 'TOM123',  elt: _add(36), expectedStand: null,   standFreeTime: null,     _resolvedStand: 'F34',  rnpCapable: false },
+  { callsign: 'TOM123',  elt: _add(36), expectedStand: 'F34',  standFreeTime: _add(18), _resolvedStand: null,   rnpCapable: false },
   // RED: Ramp K is red by default
   { callsign: 'FIN789',  elt: _add(40), expectedStand: 'K3A',  standFreeTime: _add(22), _resolvedStand: null,   rnpCapable: true  },
   // GREY: no stand assigned yet
