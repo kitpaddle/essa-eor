@@ -126,7 +126,7 @@
     /* ── Column headers ── */
     .col-headers {
       display: grid;
-      grid-template-columns: 120px 80px 1fr 80px;
+      grid-template-columns: 44px 120px 80px 1fr 80px;
       padding: 6px 16px;
       font-size: 10px;
       color: #888;
@@ -139,13 +139,16 @@
     /* ── Arrival rows ── */
     .arrival-row {
       display: grid;
-      grid-template-columns: 120px 80px 1fr 80px;
+      grid-template-columns: 44px 120px 80px 1fr 80px;
       padding: 10px 16px;
       border-bottom: 1px solid #eee;
       font-size: 13px;
       align-items: center;
       font-family: 'Courier New', monospace;
     }
+    .rnp-cell { text-align: center; font-size: 15px; }
+    .rnp-yes { color: #4caf50; }
+    .rnp-no  { color: #f44336; }
     .row-even { background: #fff; }
     .row-odd  { background: #f9f9fc; }
     .callsign  { font-weight: bold; color: #111; }
@@ -245,6 +248,7 @@
 
     <!-- Column headers -->
     <div class="col-headers">
+      <span class="col-center">RNP</span>
       <span>CALLSIGN</span>
       <span>ELT</span>
       <span>EXP STAND</span>
@@ -253,7 +257,7 @@
 
     <!-- Arrivals list -->
     <div v-if="sortedArrivals.length === 0" class="empty-state">
-      No RNP-capable arrivals within {{ LEAD_TIME_MIN }} min
+      No arrivals within {{ LEAD_TIME_MIN }} min
     </div>
     <template v-else>
       <div
@@ -262,13 +266,16 @@
         :key="arrival.callsign"
         :class="i % 2 === 0 ? 'row-even' : 'row-odd'"
       >
+        <span :class="['rnp-cell', arrival.rnpCapable ? 'rnp-yes' : 'rnp-no']">
+          {{ arrival.rnpCapable ? '✓' : '✗' }}
+        </span>
         <span class="callsign">{{ arrival.callsign }}</span>
         <span class="elt-col">{{ formatTime(arrival.elt) }}</span>
         <span :class="['stand-col', !arrival.expectedStand ? 'stand-empty' : '']">
           {{ arrival.expectedStand || '—' }}
         </span>
         <span class="dot-cell">
-          <span class="dot" :class="`dot-${dotColor(arrival)}`"></span>
+          <span v-if="arrival.rnpCapable" class="dot" :class="`dot-${dotColor(arrival)}`"></span>
         </span>
       </div>
     </template>
@@ -377,6 +384,7 @@
             expectedStand: null,
             standFreeTime: null,
             _resolvedStand: src._resolvedStand,
+            rnpCapable: src.rnpCapable,
           });
         },
 
@@ -393,10 +401,11 @@
           const now = new Date();
           const add = m => new Date(now.getTime() + m * 60000);
           this.arrivals = [
-            { callsign: 'SAS1234', elt: add(25), expectedStand: 'F32L', standFreeTime: add(8),  _resolvedStand: null },
-            { callsign: 'BAW456',  elt: add(32), expectedStand: 'G143', standFreeTime: add(20), _resolvedStand: null },
-            { callsign: 'FIN789',  elt: add(40), expectedStand: 'K3A',  standFreeTime: add(22), _resolvedStand: null },
-            { callsign: 'DLH012',  elt: add(47), expectedStand: null,   standFreeTime: null,    _resolvedStand: 'F30' },
+            { callsign: 'SAS1234', elt: add(25), expectedStand: 'F32L', standFreeTime: add(8),  _resolvedStand: null,  rnpCapable: true  },
+            { callsign: 'BAW456',  elt: add(32), expectedStand: 'G143', standFreeTime: add(20), _resolvedStand: null,  rnpCapable: true  },
+            { callsign: 'TOM123',  elt: add(36), expectedStand: null,   standFreeTime: null,    _resolvedStand: 'F34', rnpCapable: false },
+            { callsign: 'FIN789',  elt: add(40), expectedStand: 'K3A',  standFreeTime: add(22), _resolvedStand: null,  rnpCapable: true  },
+            { callsign: 'DLH012',  elt: add(47), expectedStand: null,   standFreeTime: null,    _resolvedStand: 'F30', rnpCapable: true  },
           ];
           this.addIndex = 0;
         },
@@ -423,6 +432,7 @@
             return minsUntil > 0 && minsUntil <= LEAD_TIME_MIN;
           })
           .map(f => ({ ...f }));
+
 
         this.pollTimer = setInterval(this.pollChroma, POLL_INTERVAL_SEC * 1000);
         window.addEventListener('keydown', this.handleKeydown);
