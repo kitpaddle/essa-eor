@@ -182,6 +182,39 @@
     .fcheck.on { color: #333; }
     .dot-small { width: 12px; height: 12px; display: inline-block; border-radius: 50%; flex-shrink: 0; }
 
+    /* ── Manual color override ── */
+    .dot-wrapper {
+      position: relative;
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+    }
+    .manual-asterisk {
+      position: absolute;
+      top: -5px;
+      right: -7px;
+      font-size: 13px;
+      font-weight: bold;
+      color: #111;
+      line-height: 1;
+      pointer-events: none;
+    }
+    .color-picker-popup {
+      position: fixed;
+      transform: translateX(-50%);
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+      display: flex;
+      gap: 6px;
+      padding: 7px;
+      z-index: 9999;
+    }
+    .color-picker-popup .dot { width: 22px; height: 22px; cursor: pointer; transition: transform 0.1s; }
+    .color-picker-popup .dot:hover { transform: scale(1.2); }
+
     /* ── Arrival rows ── */
     .arrival-row {
       display: grid;
@@ -386,10 +419,24 @@
           {{ arrival.expectedStand || '—' }}
         </span>
         <span class="dot-cell">
-          <span class="dot" :class="[`dot-${dotColor(arrival)}`, !arrival.rnpCapable ? 'dot-ring' : '']"></span>
+          <span class="dot-wrapper" @click.stop="openColorPicker(arrival, $event)">
+            <span class="dot" :class="[`dot-${dotColor(arrival)}`, !arrival.rnpCapable ? 'dot-ring' : '']"></span>
+            <span v-if="arrival.manualColor" class="manual-asterisk">*</span>
+          </span>
         </span>
       </div>
     </template>
+
+    <!-- Color picker teleported to body to avoid overflow clipping -->
+    <teleport to="body">
+      <div v-if="activeColorPicker" class="color-picker-popup"
+           :style="{ top: pickerPos.top + 'px', left: pickerPos.left + 'px' }"
+           @click.stop>
+        <span class="dot dot-green"  @click.stop="setManualColor('green')"></span>
+        <span class="dot dot-yellow" @click.stop="setManualColor('yellow')"></span>
+        <span class="dot dot-red"    @click.stop="setManualColor('red')"></span>
+      </div>
+    </teleport>
 
     <!-- Demo controls -->
     <div class="demo-controls" v-if="demoPanelVisible">
@@ -437,6 +484,8 @@
           apronPanelOpen: false,
           demoPanelVisible: false,
           activeFilter: null,
+          activeColorPicker: null,
+          pickerPos: { top: 0, left: 0 },
           filters: { rnpYes: true, rnpNo: true, green: true, yellow: true, red: true },
           pollTimer: null,
           addIndex: 0,
@@ -468,6 +517,7 @@
         },
 
         dotColor(arrival) {
+          if (arrival.manualColor) return arrival.manualColor;
           if (!arrival.expectedStand) return 'grey';
           const apron = STAND_APRON_MAP[arrival.expectedStand];
           if (!apron) return 'red';
@@ -478,6 +528,27 @@
           return 'yellow';
         },
 
+        openColorPicker(arrival, event) {
+          if (this.activeColorPicker === arrival.callsign) {
+            this.activeColorPicker = null;
+            return;
+          }
+          const rect = event.currentTarget.getBoundingClientRect();
+          this.pickerPos = { top: rect.bottom + 6, left: rect.left + rect.width / 2 };
+          this.activeColorPicker = arrival.callsign;
+          this._pickerArrival = arrival;
+        },
+
+        setManualColor(color) {
+          if (!this._pickerArrival) return;
+          const arrival = this._pickerArrival;
+          arrival.manualColor = null;
+          const autoColor = this.dotColor(arrival);
+          arrival.manualColor = color === autoColor ? null : color;
+          this.activeColorPicker = null;
+          this._pickerArrival = null;
+        },
+
         openFilter(name) {
           this.activeFilter = this.activeFilter === name ? null : name;
         },
@@ -486,6 +557,7 @@
         },
         closeFilter() {
           this.activeFilter = null;
+          this.activeColorPicker = null;
         },
 
         toggleRunway() {
@@ -519,6 +591,7 @@
             standFreeTime: null,
             _resolvedStand: src._resolvedStand,
             rnpCapable: src.rnpCapable,
+            manualColor: null,
           });
         },
 
@@ -535,11 +608,11 @@
           const now = new Date();
           const add = m => new Date(now.getTime() + m * 60000);
           this.arrivals = [
-            { callsign: 'SAS1234', elt: add(25), expectedStand: 'F32L', standFreeTime: add(8),  _resolvedStand: null,  rnpCapable: true  },
-            { callsign: 'BAW456',  elt: add(32), expectedStand: 'G143', standFreeTime: add(20), _resolvedStand: null,  rnpCapable: true  },
-            { callsign: 'TOM123',  elt: add(36), expectedStand: null,   standFreeTime: null,    _resolvedStand: 'F34', rnpCapable: false },
-            { callsign: 'FIN789',  elt: add(40), expectedStand: 'K3A',  standFreeTime: add(22), _resolvedStand: null,  rnpCapable: true  },
-            { callsign: 'DLH012',  elt: add(47), expectedStand: null,   standFreeTime: null,    _resolvedStand: 'F30', rnpCapable: true  },
+            { callsign: 'SAS1234', elt: add(25), expectedStand: 'F32L', standFreeTime: add(8),  _resolvedStand: null,  rnpCapable: true,  manualColor: null },
+            { callsign: 'BAW456',  elt: add(32), expectedStand: 'G143', standFreeTime: add(20), _resolvedStand: null,  rnpCapable: true,  manualColor: null },
+            { callsign: 'TOM123',  elt: add(36), expectedStand: null,   standFreeTime: null,    _resolvedStand: 'F34', rnpCapable: false, manualColor: null },
+            { callsign: 'FIN789',  elt: add(40), expectedStand: 'K3A',  standFreeTime: add(22), _resolvedStand: null,  rnpCapable: true,  manualColor: null },
+            { callsign: 'DLH012',  elt: add(47), expectedStand: null,   standFreeTime: null,    _resolvedStand: 'F30', rnpCapable: true,  manualColor: null },
           ];
           this.addIndex = 0;
         },
@@ -565,7 +638,7 @@
             const minsUntil = (f.elt - now) / 60000;
             return minsUntil > 0 && minsUntil <= LEAD_TIME_MIN;
           })
-          .map(f => ({ ...f }));
+          .map(f => ({ ...f, manualColor: null }));
 
 
         this.pollTimer = setInterval(this.pollChroma, POLL_INTERVAL_SEC * 1000);
