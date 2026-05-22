@@ -1,0 +1,11 @@
+{
+  "name": "essa-eor",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "browser-sync start --server --port 8080 --files 'index.html,data/**/*.js'"
+  },
+  "devDependencies": {
+    "browser-sync": "^3.0.0"
+  }
+}
