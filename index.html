@@ -194,15 +194,207 @@
 </head>
 <body>
   <div id="app">
+    <!-- Header -->
     <div class="panel-header">
       <span class="panel-title">EOR ARRIVALS</span>
+      <div class="header-right">
+        <span class="rwy-label">LDG RWY</span>
+        <button class="rwy-btn" @click="toggleRunway">{{ config.runway }}</button>
+        <button class="apron-toggle-btn" @click="apronPanelOpen = !apronPanelOpen">
+          {{ apronPanelOpen ? '▲' : '▼' }} Apron settings
+        </button>
+      </div>
     </div>
-    <div style="padding:16px;color:#aaa;font-size:12px;">Loading...</div>
+
+    <!-- Apron settings panel -->
+    <div class="apron-panel" v-if="apronPanelOpen">
+      <div class="apron-panel-title">APRON STATUS — WS SETTINGS</div>
+      <div class="apron-grid">
+        <div class="apron-row" v-for="(color, apron) in config.aprons" :key="apron">
+          <span class="apron-name">{{ apron }}</span>
+          <div class="apron-toggles">
+            <button :class="['apron-btn', color === 'green' ? 'active-green' : '']" @click="setApron(apron, 'green')">Green</button>
+            <button :class="['apron-btn', color === 'red' ? 'active-red' : '']"   @click="setApron(apron, 'red')">Red</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Column headers -->
+    <div class="col-headers">
+      <span>CALLSIGN</span>
+      <span>ELT</span>
+      <span>EXP STAND</span>
+      <span class="col-center">STATUS</span>
+    </div>
+
+    <!-- Arrivals list -->
+    <div v-if="sortedArrivals.length === 0" class="empty-state">
+      No RNP-capable arrivals within {{ LEAD_TIME_MIN }} min
+    </div>
+    <template v-else>
+      <div
+        class="arrival-row"
+        v-for="(arrival, i) in sortedArrivals"
+        :key="arrival.callsign"
+        :class="i % 2 === 0 ? 'row-even' : 'row-odd'"
+      >
+        <span class="callsign">{{ arrival.callsign }}</span>
+        <span class="elt-col">{{ formatTime(arrival.elt) }}</span>
+        <span :class="['stand-col', !arrival.expectedStand ? 'stand-empty' : '']">
+          {{ arrival.expectedStand || '—' }}
+        </span>
+        <span class="dot-cell">
+          <span class="dot" :class="`dot-${dotColor(arrival)}`"></span>
+        </span>
+      </div>
+    </template>
+
+    <!-- Demo controls -->
+    <div class="demo-controls" v-if="demoPanelVisible">
+      <div class="demo-title">⚙ DEMO</div>
+      <button @click="addArrival">+ Add arrival</button>
+      <button @click="assignStands">Assign stands</button>
+      <button @click="runScenario">Run scenario</button>
+      <button @click="clearArrivals">Clear</button>
+    </div>
   </div>
 
   <script>
-    console.log('STAND_APRON_MAP loaded:', Object.keys(STAND_APRON_MAP).length, 'stands');
-    console.log('CHROMA_FLIGHTS loaded:', CHROMA_FLIGHTS.length, 'flights');
+    const LEAD_TIME_MIN = 60;
+    const FREE_TIME_THRESHOLD_MIN = 15;
+    const POLL_INTERVAL_SEC = 60;
+
+    const APRON_NAMES = [
+      'Ramp AB', 'Ramp BC', 'Ramp CD', 'Ramp D',  'Ramp E',
+      'Ramp F',  'Ramp FA', 'Ramp G',  'Ramp H',  'Ramp J',
+      'Ramp K',  'Ramp L',  'Ramp M',  'Ramp R',  'Ramp S',
+      'Engine Test Site',
+    ];
+
+    function buildDefaultAprons() {
+      const aprons = {};
+      APRON_NAMES.forEach(name => { aprons[name] = 'green'; });
+      aprons['Ramp K'] = 'red';
+      return aprons;
+    }
+
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          arrivals: [],
+          config: {
+            runway: '01R',
+            aprons: buildDefaultAprons(),
+          },
+          apronPanelOpen: false,
+          demoPanelVisible: false,
+          pollTimer: null,
+          addIndex: 0,
+          LEAD_TIME_MIN,
+        };
+      },
+
+      computed: {
+        sortedArrivals() {
+          return [...this.arrivals].sort((a, b) => a.elt - b.elt);
+        },
+      },
+
+      methods: {
+        formatTime(date) {
+          return date.toTimeString().slice(0, 5);
+        },
+
+        dotColor(arrival) {
+          if (!arrival.expectedStand) return 'grey';
+          const apron = STAND_APRON_MAP[arrival.expectedStand];
+          if (!apron || this.config.aprons[apron] === 'red') return 'red';
+          const threshold = new Date(arrival.elt.getTime() - FREE_TIME_THRESHOLD_MIN * 60000);
+          if (!arrival.standFreeTime || arrival.standFreeTime <= threshold) return 'green';
+          return 'yellow';
+        },
+
+        toggleRunway() {
+          this.config.runway = this.config.runway === '01R' ? '19L' : '01R';
+        },
+
+        setApron(apron, color) {
+          this.config.aprons[apron] = color;
+        },
+
+        addArrival() {
+          const pool = CHROMA_FLIGHTS.filter(f =>
+            !this.arrivals.find(a => a.callsign === f.callsign)
+          );
+          if (pool.length === 0) return;
+          const src = pool[this.addIndex % pool.length];
+          this.addIndex++;
+          const now = new Date();
+          this.arrivals.push({
+            callsign: src.callsign,
+            elt: new Date(now.getTime() + 45 * 60000),
+            expectedStand: null,
+            standFreeTime: null,
+            _resolvedStand: src._resolvedStand,
+          });
+        },
+
+        assignStands() {
+          this.arrivals.forEach(a => {
+            if (!a.expectedStand && a._resolvedStand) {
+              a.expectedStand = a._resolvedStand;
+              a.standFreeTime = new Date(a.elt.getTime() - 20 * 60000);
+            }
+          });
+        },
+
+        runScenario() {
+          const now = new Date();
+          const add = m => new Date(now.getTime() + m * 60000);
+          this.arrivals = [
+            { callsign: 'SAS1234', elt: add(25), expectedStand: 'F32L', standFreeTime: add(8),  _resolvedStand: null },
+            { callsign: 'BAW456',  elt: add(32), expectedStand: 'G143', standFreeTime: add(20), _resolvedStand: null },
+            { callsign: 'FIN789',  elt: add(40), expectedStand: 'K3A',  standFreeTime: add(22), _resolvedStand: null },
+            { callsign: 'DLH012',  elt: add(47), expectedStand: null,   standFreeTime: null,    _resolvedStand: 'F30' },
+          ];
+          this.addIndex = 0;
+        },
+
+        clearArrivals() {
+          this.arrivals = [];
+          this.addIndex = 0;
+        },
+
+        pollChroma() {
+          console.log('[Chroma poll]', new Date().toTimeString().slice(0, 5));
+        },
+
+        handleKeydown(e) {
+          if (e.shiftKey && e.key === 'D') this.demoPanelVisible = !this.demoPanelVisible;
+        },
+      },
+
+      mounted() {
+        const now = new Date();
+        this.arrivals = CHROMA_FLIGHTS
+          .filter(f => {
+            const minsUntil = (f.elt - now) / 60000;
+            return minsUntil > 0 && minsUntil <= LEAD_TIME_MIN;
+          })
+          .map(f => ({ ...f }));
+
+        this.pollTimer = setInterval(this.pollChroma, POLL_INTERVAL_SEC * 1000);
+        window.addEventListener('keydown', this.handleKeydown);
+      },
+
+      beforeUnmount() {
+        clearInterval(this.pollTimer);
+        window.removeEventListener('keydown', this.handleKeydown);
+      },
+    }).mount('#app');
   </script>
 </body>
 </html>
