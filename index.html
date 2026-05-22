@@ -73,36 +73,55 @@
       border-bottom: 1px solid #ccc;
       padding: 10px 16px;
     }
+    .apron-panel-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
     .apron-panel-title {
       font-size: 10px;
       letter-spacing: 1px;
       color: #888;
-      margin-bottom: 8px;
     }
-    .apron-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 4px 24px;
+    .reset-btn {
+      font-size: 10px;
+      padding: 2px 8px;
+      border: 1px solid #bbb;
+      border-radius: 3px;
+      background: #fff;
+      color: #666;
+      cursor: pointer;
     }
+    .reset-btn:hover { background: #f0f0f0; }
     .apron-row {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr 44px 44px;
       align-items: center;
-      justify-content: space-between;
-      padding: 3px 0;
+      padding: 2px 0;
+    }
+    .apron-row.apron-col-header { margin-bottom: 2px; }
+    .rwy-col-label {
+      text-align: center;
+      font-size: 10px;
+      color: #777;
+      letter-spacing: 1px;
+      font-weight: 600;
     }
     .apron-name { font-size: 11px; color: #444; }
-    .apron-toggles { display: flex; gap: 3px; }
-    .apron-btn {
-      font-size: 10px;
-      padding: 2px 7px;
-      border: 1px solid #ccc;
-      border-radius: 3px;
+    .apron-dot-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid transparent;
       cursor: pointer;
-      background: #fff;
-      color: #888;
+      display: block;
+      margin: 0 auto;
     }
-    .apron-btn.active-green { background: #4caf50; color: #fff; border-color: #4caf50; }
-    .apron-btn.active-red   { background: #f44336; color: #fff; border-color: #f44336; }
+    .dot-btn-green { background: #4caf50; border-color: #388e3c; }
+    .dot-btn-red   { background: #f44336; border-color: #c62828; }
+    .dot-btn-green:hover { background: #43a047; }
+    .dot-btn-red:hover   { background: #e53935; }
 
     /* ── Column headers ── */
     .col-headers {
@@ -208,15 +227,19 @@
 
     <!-- Apron settings panel -->
     <div class="apron-panel" v-if="apronPanelOpen">
-      <div class="apron-panel-title">APRON STATUS — WS SETTINGS</div>
-      <div class="apron-grid">
-        <div class="apron-row" v-for="(color, apron) in config.aprons" :key="apron">
-          <span class="apron-name">{{ apron }}</span>
-          <div class="apron-toggles">
-            <button :class="['apron-btn', color === 'green' ? 'active-green' : '']" @click="setApron(apron, 'green')">Green</button>
-            <button :class="['apron-btn', color === 'red' ? 'active-red' : '']"   @click="setApron(apron, 'red')">Red</button>
-          </div>
-        </div>
+      <div class="apron-panel-top">
+        <span class="apron-panel-title">APRON STATUS — WS SETTINGS</span>
+        <button class="reset-btn" @click="resetAprons">Reset to default</button>
+      </div>
+      <div class="apron-row apron-col-header">
+        <span></span>
+        <span class="rwy-col-label">01L</span>
+        <span class="rwy-col-label">19R</span>
+      </div>
+      <div class="apron-row" v-for="(settings, apron) in config.aprons" :key="apron">
+        <span class="apron-name">{{ apron }}</span>
+        <button :class="['apron-dot-btn', 'dot-btn-' + settings['01L']]" @click="toggleApron(apron, '01L')"></button>
+        <button :class="['apron-dot-btn', 'dot-btn-' + settings['19R']]" @click="toggleApron(apron, '19R')"></button>
       </div>
     </div>
 
@@ -274,8 +297,13 @@
 
     function buildDefaultAprons() {
       const aprons = {};
-      APRON_NAMES.forEach(name => { aprons[name] = 'green'; });
-      aprons['Ramp K'] = 'red';
+      APRON_NAMES.forEach(name => { aprons[name] = { '01L': 'green', '19R': 'green' }; });
+      return aprons;
+    }
+
+    function buildDemoAprons() {
+      const aprons = buildDefaultAprons();
+      aprons['Ramp K']['01L'] = 'red'; // demo: show red dot on load
       return aprons;
     }
 
@@ -287,7 +315,7 @@
           arrivals: [],
           config: {
             runway: '01R',
-            aprons: buildDefaultAprons(),
+            aprons: buildDemoAprons(),
           },
           apronPanelOpen: false,
           demoPanelVisible: false,
@@ -311,7 +339,9 @@
         dotColor(arrival) {
           if (!arrival.expectedStand) return 'grey';
           const apron = STAND_APRON_MAP[arrival.expectedStand];
-          if (!apron || this.config.aprons[apron] === 'red') return 'red';
+          if (!apron) return 'red';
+          const eorRunway = this.config.runway === '01R' ? '01L' : '19R';
+          if (this.config.aprons[apron][eorRunway] === 'red') return 'red';
           const threshold = new Date(arrival.elt.getTime() - FREE_TIME_THRESHOLD_MIN * 60000);
           if (!arrival.standFreeTime || arrival.standFreeTime <= threshold) return 'green';
           return 'yellow';
@@ -321,8 +351,16 @@
           this.config.runway = this.config.runway === '01R' ? '19L' : '01R';
         },
 
-        setApron(apron, color) {
-          this.config.aprons[apron] = color;
+        toggleApron(apron, runway) {
+          const current = this.config.aprons[apron][runway];
+          this.config.aprons[apron][runway] = current === 'green' ? 'red' : 'green';
+        },
+
+        resetAprons() {
+          APRON_NAMES.forEach(name => {
+            this.config.aprons[name]['01L'] = 'green';
+            this.config.aprons[name]['19R'] = 'green';
+          });
         },
 
         addArrival() {
