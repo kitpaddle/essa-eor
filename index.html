@@ -146,9 +146,7 @@
       align-items: center;
       font-family: 'Courier New', monospace;
     }
-    .rnp-cell { text-align: center; font-size: 15px; }
-    .rnp-yes { color: #4caf50; }
-    .rnp-no  { color: #f44336; }
+    .rnp-cell { text-align: center; line-height: 0; }
     .row-even { background: #fff; }
     .row-odd  { background: #f9f9fc; }
     .callsign  { font-weight: bold; color: #111; }
@@ -266,8 +264,14 @@
         :key="arrival.callsign"
         :class="i % 2 === 0 ? 'row-even' : 'row-odd'"
       >
-        <span :class="['rnp-cell', arrival.rnpCapable ? 'rnp-yes' : 'rnp-no']">
-          {{ arrival.rnpCapable ? '✓' : '✗' }}
+        <span class="rnp-cell">
+          <svg v-if="arrival.rnpCapable" width="14" height="14" viewBox="0 0 14 14">
+            <polyline points="2,8 5,12 12,2" stroke="#4caf50" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <svg v-else width="14" height="14" viewBox="0 0 14 14">
+            <line x1="3" y1="3" x2="11" y2="11" stroke="#f44336" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="11" y1="3" x2="3" y2="11" stroke="#f44336" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
         </span>
         <span class="callsign">{{ arrival.callsign }}</span>
         <span class="elt-col">{{ formatTime(arrival.elt) }}</span>
