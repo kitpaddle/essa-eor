@@ -1,0 +1,207 @@
+  <!-- FRAMSIDA -->
+  <div class="cover">
+    <div class="cover-tag">ESSA ATC — Internt konceptförslag</div>
+    <div class="cover-title">Digitalisering och förenkling av EOR-samordningar</div>
+    <div class="cover-sub">Automatisering av gatetillgänglighetskontroller för att förenkla arbetet för ESSA WS och APP</div>
+    <div class="cover-meta">Upprättad: Maj 2026 &nbsp;·&nbsp; ESSA TWR/APP</div>
+  </div>
+
+  <!-- 1. SAMMANFATTNING -->
+  <div class="section">
+    <h2>1. Sammanfattning</h2>
+    <p>Detta dokument beskriver ett förslag för digitalisering och förenkling av EOR-processen.</p>
+    <p>I dagsläget är det WS som tar ansvaret för att ta reda på var ankomster ska parkera, om gate:ar är lediga och hur banval och arbetsområden påverkar taximönster. Baserat på den informationen bestämmer WS vilka potentiella EOR-kandidater kan godkännas och kommunicerar detta till APP / TST</p>
+    <p>EOR-processen var ursprungligen inte tänkt att kräva en sådan aktiv roll av WS. Men då vissa EOR ankomster kan ställa till det för TWR/GND har det blivit standard att WS försöker hinna med denna funktion. Användandet av en ankomstlista på IRIS bevisar dock att en teknisk och digital lösning skulle kunna förenkla denna process så att båda APP och WS kan uppnå samma resultat med mindre manuellt arbete och färre samordningar.</p>
+    <p>Resultatet är en lista med kandidater med tillhörande färgkodad statusindikator ger APP-kontrollanten allt som behövs för att fatta ett EOR-beslut självständigt, medan WS behåller full kontroll över rampkonfigurationen och möjlighet till manuella ändringar.</p>
+  </div>
+
+  <!-- 2. BAKGRUND -->
+  <div class="section">
+    <h2>2. Bakgrund — Hur EOR genomförs Idag</h2>
+    <p>ESSA tillämpar en <strong>Establlished on RNP (EOR)</strong>-procedur som tillåter utvalda ankommande flygplan att landa på startbanan (01L eller 19R) med en kurvad RNP-inflygning. Detta ökar kapaciteten under perioder med hög ankokmsttrafik och hjälper fördela bankapaciteten under trafiktopparna.</p>
+    <h3>Begränsningar</h3>
+    <ul>
+      <li><strong>RNP-kapacitet krävs</strong> — endast flygplan med korrekt utrustning angiven i färdplanen är berättigade</li>
+      <li><strong>Taxivägens lämplighet</strong> — efter landning måste flygplanet taxa till sin stand utan att gå mot det ordinarie trafikflödet; detta beror på tilldelad ramp och aktiv banakonfiguration</li>
+      <li><strong>Gate-tillgänglighet</strong> — om ett flygplan inte kan taxa in till gate efter landning för denna är upptagen blir den stående vilket ökar komplexiteten på GND och utsläppen. Även om en ankomst bränner mindre bränsle på amrken än i luften är det fortfarande fördelaktigt att välja ankomster med gater som är tillgängliga i första hand om möjligt.</li>
+    </ul>
+    <h3>Nuvarande Beslutsprocess</h3>
+    <p>När en ankomst träder in i planeringsfönstret (ungefär 60 minuter före landning) genomförs i dagsläget följande steg:</p>
+    <ol class="steps">
+      <li>I mån av tid kollar WS upp en ankomstlista på IRIS där RNP-kapabla ankomster är markerade.</li>
+      <li>För varje lämplig kandidat öppnar WS Chroma (flygplatsens gate-hanteringssystem) och slår manuellt upp förväntad stand och dess tillgänglighet (att den förväntas vara ledig när ankomsten landar).</li>
+      <li>WS jämför gate:n mot aktuell banakonfiguration och taxiflöden för att bedöma om taxivägen är acceptabel för GND med hänsyn till eventuella arbetsområden.</li>
+      <li>WS ringer APP / TST via telefon för att meddela vilka ankomster som anses lämpliga ur ESSA-perspektiv för EOR.</li>
+      <li>APP klarerar om de godkända och samordnar de som klarerats om med TWR — detta steg kvarstår oförändrat.</li>
+    </ol>
+  </div>
+
+  <!-- 3. UTMANINGAR -->
+  <div class="section">
+    <h2>3. Nuvarande Utmaningar</h2>
+    <table>
+      <tr><th>Användare</th><th>Utmaning</th><th>Konsekvens</th></tr>
+      <tr><td><strong>WS</strong></td><td>Måste manuellt kontrollera Chroma för varje RNP-kapabel ankomst</td><td>Repetitiv, tidskrävande uppgift som upprepas när EOR är igång</td></tr>
+      <tr><td><strong>WS</strong></td><td>Måste ringa APP för varje EOR-beslut</td><td>Avbryter övriga tillsynsuppgifter; skapar ett kommunikationsberoende</td></tr>
+      <tr><td><strong>APP / TST</strong></td><td>Inväntar WS-godkännande innan EOR tilldelas</td><td>Skapar tidstryck och merarbete</td></tr>
+      <tr><td><strong>APP / TST</strong></td><td>Samordningar via VCS avbryter fokus på trafikledningen</td><td>Ökad arbetsbelastning</td></tr>
+      <tr><td><strong>Båda</strong></td><td>Processen kräver manuella kontroller i två separata system (IRIS & Chroma)</td><td>Risk för missade EOR-möjligheter eller fel under hög trafik</td></tr>
+    </table>
+    <div class="callout red">
+      <strong>Huvudutmaningen</strong>
+      Både WS och APP utför en upprepad, förutsägbar uppslagsuppgift (stand + rampens lämplighet) som kan automatiseras — vilket tar bort fokus från bägge deras huvuduppgifter.
+    </div>
+  </div>
+
+  <!-- 4. FÖRESLAGEN LÖSNING -->
+  <div class="section">
+    <h2>4. Föreslagen Lösning</h2>
+    <p>Förslaget är att digitalisera denna process genom att utöka den befintliga EOR-ankomstlistan på IRIS med två förbättringar:</p>
+    <ol>
+      <li><strong>Ett API för Automatisk datahantering av Chroma</strong> — när en ankomst träder in i 60-minutersfönstret frågar systemet Chroma om förväntad stand och gatetillgänglighet, med uppdatering en gång per minut.</li>
+      <li><strong>Ett enkelt algoritm som rangordnar och färgkodar ankomster</strong> </li>
+      <li><strong>Enkla inställningar för att anpassa algoritmen vid arbeten/avstängningar</strong> — WS kan enkelt ange varje ramp som <em>Grön</em> (lämplig) eller <em>Röd</em> (ej tillgänglig) när förutsättningar på manöverområdet ändras iom arbeten eller andra händelser</li>
+    </ol>
+    <p>Resultatet är en enkel färgkodad statuspunkt bredvid varje ankomst som bygger på riktiga förutsättningar, som WS kan påverka och som APP kan enkelt läsa av och använda för att välja ut ankomster för EOR</p>
+
+    <h3>Statuspunktens Betydelse</h3>
+    <div class="dot-row"><span class="dot dot-green"></span><strong>Grön</strong> — Stand på lämplig ramp och ledig minst 15 minuter före landning. Säkert att tilldela EOR.</div>
+    <div class="dot-row"><span class="dot dot-yellow"></span><strong>Gul</strong> — Stand på lämplig ramp men gatetillgängligheten är tight (&lt;15 min före landning). Används om inget grönt alternativ finns.</div>
+    <div class="dot-row"><span class="dot dot-red"></span><strong>Röd</strong> — Stand på ramp som WS markerat som olämplig för aktuell banakonfiguration. Tilldela ej EOR.</div>
+    <div class="dot-row"><span class="dot dot-grey"></span><strong>Grå</strong> — Chroma har ännu inte tilldelat en stand. Status inväntas.</div>
+
+    <div class="callout green">
+      <strong>Resultat för APP</strong>
+      APP kan agera på färgen direkt, utan att invänta ett samtal från WS. Beslutslogiken är transparent och konsekvent.
+    </div>
+    <div class="callout green">
+      <strong>Resultat för WS</strong>
+      WS behöver bara uppdatera listan valda bana och se över rampinställningarna inför varje EOR period. Samordningar med APP för rutinmässiga EOR-beslut elimineras.
+    </div>
+  </div>
+
+  <!-- 5. GRÄNSSNITTET -->
+  <div class="section">
+    <h2>5. Gränssnittet</h2>
+    <p>EOR-panelen är utformad för att sitta som ett dedikerat fönster i den befintliga IRIS-miljön vid både APP- och WS-positionerna. Båda positionerna ser samma vy.</p>
+
+    <div class="screenshot-wrap">
+      <img src="{{IMG_MAIN}}" alt="EOR-ankomstpanel — huvudvy" style="max-width:420px;">
+      <div class="screenshot-caption">Bild 1. EOR-ankomstpanelen — ankomster inom 60 minuter före landning, med alla fyra statustyper synliga</div>
+    </div>
+
+    <h3>Panelinformation</h3>
+    <table>
+      <tr><th>Element</th><th>Beskrivning</th></tr>
+      <tr><td><strong>RNP-kolumn</strong></td><td>Bockmark = RNP-kapabel (berättigad till EOR). Kryss = ej RNP (nedtonad, visas för kännedom, men kan döljas av användaren om så önskas).</td></tr>
+      <tr><td><strong>CALLSIGN</strong></td><td>Flygplanets anropssignal</td></tr>
+      <tr><td><strong>ELT</strong></td><td>Beräknad landningstid (Estimated Landing Time)</td></tr>
+      <tr><td><strong>EXP STAND</strong></td><td>Förväntad stand enligt Chroma. Streck = ännu ej tilldelad.</td></tr>
+      <tr><td><strong>STATUS</strong></td><td>Färgkodad EOR-lämplighetsindikator (se avsnitt 4). Klickbar för manuell åsidosättning vid behov.</td></tr>
+      <tr><td><strong>ARR RWY</strong></td><td>Aktiv EOR-bana (01L eller 19R). Styr vilka rampinställningar som används vid statusberäkningen.</td></tr>
+      <tr><td><strong>Rampinställningar</strong></td><td>Inställningspanel där ESSA WS kan ange varje ramp som Grön eller Röd per EOR-bana (se bild 2).</td></tr>
+    </table>
+
+    <div class="screenshot-wrap">
+      <img src="{{IMG_APRON}}" alt="EOR-ankomstpanel — rampinställningar öppna" style="max-width:420px;">
+      <div class="screenshot-caption">Bild 2. Rampinställningspanelen — WS anger varje ramp som Grön eller Röd per EOR-bana. Ändringar träder omedelbart i kraft vid båda positionerna.</div>
+    </div>
+
+    <h3>Manuell Override</h3>
+    <p>ESSA WS kan klicka på valfri statuspunkt för att manuellt överrida algoritmen och ange en annan färg på en ankomst. Om en akomst har överridits manuellt visas en liten asterisk (<strong>*</strong>) bredvid punkten. Om det manuella valet stämmer överens med vad algoritmen skulle ha beräknat rensas asterisken automatiskt.</p>
+
+    <h3>Filter</h3>
+    <p>Kolumnrubrikerna RNP och STATUS är klickbara och öppnar ett filterdropdown som låter användaren tillfälligt dölja specifika kategorier av ankomster — exempelvis icke-RNP-rader eller rader med röd status — för att minska visuellt brus.</p>
+  </div>
+
+  <!-- 6. FÖRE OCH EFTER -->
+  <div class="section">
+    <h2>6. Före och Efter</h2>
+    <div class="compare">
+      <div class="compare-col">
+        <div class="compare-col-head before">Utan verktyget</div>
+        <ul>
+          <li>WS kontrollerar IRIS-listan för RNP-ankomster</li>
+          <li>WS öppnar Chroma — slår upp stand per flyg</li>
+          <li>WS jämför ramp mot banakonfiguration</li>
+          <li>WS ringer APP via telefon</li>
+          <li>APP inväntar besked, agerar sedan</li>
+          <li>Upprepas för varje EOR-kandidat</li>
+        </ul>
+      </div>
+      <div class="compare-col">
+        <div class="compare-col-head after">Med verktyget</div>
+        <ul>
+          <li>WS anger rampfärger en gång (vid skiftstart, banbyte eller behov pga av ändrade förutsättningar)</li>
+          <li>Systemet frågar Chroma automatiskt</li>
+          <li>Status beräknas i realtid</li>
+          <li>APP läser punkten — agerar självständigt</li>
+          <li>Inget telefonsamtal krävs för rutinbeslut</li>
+          <li>WS tillgänglig för att överrida manuellt status vid behov</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. TEKNISKA KRAV -->
+  <div class="section">
+    <h2>7. Tekniska Krav</h2>
+
+    <h3>IRIS-integration</h3>
+    <ul>
+      <li>EOR-verktyget tas fram som ett eget dedikerat fönster i IRIS-miljön</li>
+      <li>Ska visas vid både APP- och WS-positionerna simultant (samma information hos bägge)</li>
+      <li>Läsbehörighet till befintligt IRIS EOR-dataflöde (anropssignal, ELT, RNP-kapacitetsflagga)</li>
+    </ul>
+
+    <h3>Chroma API</h3>
+    <table>
+      <tr><th>Datapunkt</th><th>Användning</th></tr>
+      <tr><td>Förväntad standnummer</td><td>Identifierar vilken ramp flygplanet kommer att parkera på</td></tr>
+      <tr><td>Förväntad gatefritid</td><td>Avgör grön kontra gul status (15-minuterströskel före ELT)</td></tr>
+    </table>
+    <ul>
+      <li><strong>Åtkomsttyp:</strong> Skrivskyddad — inga skrivningar till Chroma krävs</li>
+      <li><strong>Frågefrekvens:</strong> En gång per ankomst, sedan en gång per minut tills standen är bekräftad</li>
+      <li><strong>Utlösare:</strong> När en ankomst träder in i 60-minutersfönstret</li>
+    </ul>
+
+    <h3>Statisk Referensdata</h3>
+    <ul>
+      <li>Mappning av standnummer till rampnamn (härled från flygplatsens GIS-data — redan tillgänglig)</li>
+      <li>Detta kan vara XML-data så att LFV enkelt kan ändra dessa om flygplatsens byggs ut eller namn på gate ändras i framtiden</li>
+    </ul>
+
+    <h3>Konfigurerbara Parametrar</h3>
+    <table>
+      <tr><th>Parameter</th><th>Standardvärde</th><th>Beskrivning</th></tr>
+      <tr><td>Ledtid</td><td>60 minuter</td><td>När ankomster visas i listan</td></tr>
+      <tr><td>Beslutstid</td><td>30 minuter (?)</td><td>Senast 30 min (?) innan ELT för en ankomst sätts EOR status för en RNP-kapabelankomst</td></tr>
+      <tr><td>Tröskel för ledig gate</td><td>15 minuter</td><td>Gaten måste vara ledig detta antal minuter före ELT för grön status</td></tr>
+      <tr><td>Pollingintervall</td><td>60 sekunder</td><td>Hur ofta Chroma API:et frågas per flyg</td></tr>
+    </table>
+
+    <h3>Infrastruktur</h3>
+    <ul>
+      <li>Vid godkännande av koncept kan detta beställas av KOMBITECH för integration i IRIS</li>
+      <li>Kombitech's ledtider för att integrera nya lösningar i IRIS är relativ kort.</li>
+      <li>Verktyget är inte direkt operativt. Det är enbart en automatisering och digitalisering för att förenkla en manuell process och bespara samrodningar.</li>
+      <li>Skulle funktionen inte fungera återgår man enkelt till nuvarande hantering för val av EOR-ankomster</li>
+    </ul>
+  </div>
+
+  <!-- 8. NÄSTA STEG -->
+  <div class="section">
+    <h2>8. Nästa Steg</h2>
+    <ol>
+      <li><strong>Operativ granskning</strong> — validera ramp/bana-logik och tröskelvärden med APP- och WS-kollegor</li>
+      <li><strong>Chroma API-bedömning</strong> — bekräfta tillgängliga slutpunkter och dataformat med Chroma-teamet</li>
+      <li><strong>IRIS-integrationsprojektering</strong> — bekräfta inbäddningskrav med IRIS-leverantör/IT</li>
+      <li><strong>Pilottest</strong> — driftsätt vid en position (WS rekommenderas) och validera punktfärgernas korrekthet mot manuella kontroller</li>
+      <li><strong>Fullständig driftsättning</strong> — ta i drift på IRIS så att relevanta positioner har åtkomst till verktyget (via IRIS)</li>
+    </ol>
+    <div class="callout">
+      <strong>Notering</strong>
+      En fungerande prototyp av gränssnittet finns tillgänglig för demonstration. Prototypen använder simulerad Chroma-data och är tillgänglig på: <strong>https://kitpaddle.github.io/essa-eor/</strong>
+    </div>
+  </div>
